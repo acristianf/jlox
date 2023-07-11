@@ -62,7 +62,7 @@ public class Parser {
             expr = new Expr.Binary(expr, operator, right);
         }
 
-        return factor();
+        return expr;
     }
 
     private Expr factor() {
