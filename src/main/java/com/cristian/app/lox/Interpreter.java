@@ -8,6 +8,9 @@ import java.util.List;
 public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     private Environment enviroment = new Environment();
 
+    private static class BreakException extends RuntimeException {
+    }
+
     public void interpret(List<Stmt> statements) {
         try {
             statements.forEach(stmt -> stmt.accept(this));
@@ -176,8 +179,12 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
     @Override
     public Void visitWhileStmt(Stmt.While stmt) {
-        while (isTruthy(stmt.condition.accept(this))) {
-            stmt.body.accept(this);
+        try {
+            while (isTruthy(stmt.condition.accept(this))) {
+                stmt.body.accept(this);
+            }
+        } catch (BreakException ignored) {
+
         }
         return null;
     }
@@ -185,7 +192,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     @Override
     public Void visitBreakStmt(Stmt.Break stmt) {
         // TODO: Complete break statement
-        return null;
+        throw new BreakException();
     }
 
     @Override
