@@ -39,6 +39,17 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     }
 
     @Override
+    public Object visitLogicalExpr(Expr.Logical expr) {
+        Object left = expr.left.accept(this);
+        if (expr.operator.type == TokenType.OR) {
+            if (isTruthy(left)) return left;
+        } else {
+            if (!isTruthy(left)) return left;
+        }
+        return expr.right.accept(this);
+    }
+
+    @Override
     public Object visitBinaryExpr(Expr.Binary expr) {
         Object leftValue = expr.left.accept(this);
         Object rightValue = expr.right.accept(this);
@@ -149,6 +160,31 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         } finally {
             this.enviroment = previous;
         }
+        return null;
+    }
+
+    @Override
+    public Void visitIfStmt(Stmt.If stmt) {
+        Object value = stmt.condition.accept(this);
+        if (isTruthy(value)) {
+            stmt.thenBranch.accept(this);
+        } else if (stmt.elseBranch != null) {
+            stmt.elseBranch.accept(this);
+        }
+        return null;
+    }
+
+    @Override
+    public Void visitWhileStmt(Stmt.While stmt) {
+        while (isTruthy(stmt.condition.accept(this))) {
+            stmt.body.accept(this);
+        }
+        return null;
+    }
+
+    @Override
+    public Void visitBreakStmt(Stmt.Break stmt) {
+        // TODO: Complete break statement
         return null;
     }
 

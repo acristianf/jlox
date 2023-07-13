@@ -2,11 +2,13 @@ package com.cristian.app.lox;
 
 import java.util.List;
 
-abstract class Expr {
+public abstract class Expr {
 
     interface Visitor<R> {
 
         R visitAssignExpr(Assign expr);
+
+        R visitLogicalExpr(Logical expr);
 
         R visitBinaryExpr(Binary expr);
 
@@ -20,13 +22,13 @@ abstract class Expr {
     }
 
     public static class Assign extends Expr {
-        Assign(Token identifier, Expr value) {
+        Assign( Token identifier,  Expr value) {
             this.identifier = identifier;
             this.value = value;
         }
 
-        final Token identifier;
-        final Expr value;
+        final  Token identifier;
+        final  Expr value;
 
         @Override
         <R> R accept(Visitor<R> visitor) {
@@ -34,16 +36,33 @@ abstract class Expr {
         }
     }
 
-    public static class Binary extends Expr {
-        Binary(Expr left, Token operator, Expr right) {
+    public static class Logical extends Expr {
+        Logical( Expr left,  Token operator,  Expr right) {
             this.left = left;
             this.operator = operator;
             this.right = right;
         }
 
-        final Expr left;
-        final Token operator;
-        final Expr right;
+        final  Expr left;
+        final  Token operator;
+        final  Expr right;
+
+        @Override
+        <R> R accept(Visitor<R> visitor) {
+            return visitor.visitLogicalExpr(this);
+        }
+    }
+
+    public static class Binary extends Expr {
+        Binary( Expr left,  Token operator,  Expr right) {
+            this.left = left;
+            this.operator = operator;
+            this.right = right;
+        }
+
+        final  Expr left;
+        final  Token operator;
+        final  Expr right;
 
         @Override
         <R> R accept(Visitor<R> visitor) {
@@ -52,11 +71,11 @@ abstract class Expr {
     }
 
     public static class Grouping extends Expr {
-        Grouping(Expr expression) {
+        Grouping( Expr expression) {
             this.expression = expression;
         }
 
-        final Expr expression;
+        final  Expr expression;
 
         @Override
         <R> R accept(Visitor<R> visitor) {
@@ -65,11 +84,11 @@ abstract class Expr {
     }
 
     public static class Literal extends Expr {
-        Literal(Object value) {
+        Literal( Object value) {
             this.value = value;
         }
 
-        final Object value;
+        final  Object value;
 
         @Override
         <R> R accept(Visitor<R> visitor) {
@@ -78,13 +97,13 @@ abstract class Expr {
     }
 
     public static class Unary extends Expr {
-        Unary(Token operator, Expr right) {
+        Unary( Token operator,  Expr right) {
             this.operator = operator;
             this.right = right;
         }
 
-        final Token operator;
-        final Expr right;
+        final  Token operator;
+        final  Expr right;
 
         @Override
         <R> R accept(Visitor<R> visitor) {
@@ -93,11 +112,11 @@ abstract class Expr {
     }
 
     public static class Variable extends Expr {
-        Variable(Token identifier) {
+        Variable( Token identifier) {
             this.identifier = identifier;
         }
 
-        final Token identifier;
+        final  Token identifier;
 
         @Override
         <R> R accept(Visitor<R> visitor) {

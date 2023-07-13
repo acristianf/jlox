@@ -32,6 +32,18 @@ public class Environment {
         throw new RuntimeError(identifier, "Undefined variable '" + identifier.lexeme + "'.");
     }
 
+    @Override
+    public String toString() {
+        String outerString = null;
+        if (outer != null) {
+            outerString = outer.toString();
+        }
+        return "Environment{" +
+                "outer=" + outerString +
+                ", values=" + values +
+                '}';
+    }
+
     public Object get(Token identifier) {
         if (values.containsKey(identifier.lexeme)) {
             return values.get(identifier.lexeme);

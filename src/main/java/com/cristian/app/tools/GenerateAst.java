@@ -15,6 +15,7 @@ public class GenerateAst {
         String outputDir = args[0];
         defineAst(outputDir, "Expr", Arrays.asList(
                 "Assign : Token identifier, Expr value",
+                "Logical : Expr left, Token operator, Expr right",
                 "Binary : Expr left, Token operator, Expr right",
                 "Grouping : Expr expression",
                 "Literal : Object value",
@@ -23,6 +24,9 @@ public class GenerateAst {
         ));
         defineAst(outputDir, "Stmt", Arrays.asList(
                 "Block : List<Stmt> statements",
+                "If : Expr condition, Stmt thenBranch, Stmt elseBranch",
+                "While : Expr condition, Stmt body",
+                "Break",
                 "Expression : Expr expression",
                 "Print : Expr expression",
                 "Var : Token identifier, Expr initializer"
@@ -37,14 +41,18 @@ public class GenerateAst {
         writer.println();
         writer.println("import java.util.List;");
         writer.println();
-        writer.println("abstract class " + baseName + " {");
+        writer.println("public abstract class " + baseName + " {");
         writer.println();
         defineVisitor(writer, baseName, types);
         writer.println();
         types.forEach(type -> {
             int colonIdx = type.indexOf(":");
-            String typeName = type.substring(0, colonIdx - 1).trim();
-            String[] constructorParams = type.substring(colonIdx + 1, type.length()).split(",");
+            String typeName = type;
+            String[] constructorParams = new String[0];
+            if (colonIdx != -1) {
+                typeName = type.substring(0, colonIdx - 1).trim();
+                constructorParams = type.substring(colonIdx + 1, type.length()).split(",");
+            }
             writer.println("    public static class " + typeName + " extends " + baseName + " {");
             writer.println("        " + typeName + "(" + String.join(", ", constructorParams) + ") {");
             for (String constructorParam : constructorParams) {
