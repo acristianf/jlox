@@ -53,7 +53,7 @@ public class Scanner {
 
     private void scanToken() {
         skipWhitespace();
-        current = start;
+        if (isAtEnd()) return;
 
         char c = advance();
 
@@ -150,9 +150,10 @@ public class Scanner {
     }
 
     private void skipWhitespace() {
-        while (Character.isWhitespace(source.charAt(start))) {
+        while (!isAtEnd() && Character.isWhitespace(source.charAt(start))) {
             if (source.charAt(start) == '\n') line++;
             start++;
+            current = start;
         }
     }
 

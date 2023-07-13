@@ -2,9 +2,11 @@ package com.cristian.app.lox;
 
 import java.util.List;
 
-public abstract class Expr {
+abstract class Expr {
 
     interface Visitor<R> {
+
+        R visitAssignExpr(Assign expr);
 
         R visitBinaryExpr(Binary expr);
 
@@ -13,6 +15,23 @@ public abstract class Expr {
         R visitLiteralExpr(Literal expr);
 
         R visitUnaryExpr(Unary expr);
+
+        R visitVariableExpr(Variable expr);
+    }
+
+    public static class Assign extends Expr {
+        Assign(Token identifier, Expr value) {
+            this.identifier = identifier;
+            this.value = value;
+        }
+
+        final Token identifier;
+        final Expr value;
+
+        @Override
+        <R> R accept(Visitor<R> visitor) {
+            return visitor.visitAssignExpr(this);
+        }
     }
 
     public static class Binary extends Expr {
@@ -70,6 +89,19 @@ public abstract class Expr {
         @Override
         <R> R accept(Visitor<R> visitor) {
             return visitor.visitUnaryExpr(this);
+        }
+    }
+
+    public static class Variable extends Expr {
+        Variable(Token identifier) {
+            this.identifier = identifier;
+        }
+
+        final Token identifier;
+
+        @Override
+        <R> R accept(Visitor<R> visitor) {
+            return visitor.visitVariableExpr(this);
         }
     }
 

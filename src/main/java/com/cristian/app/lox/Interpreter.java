@@ -3,12 +3,14 @@ package com.cristian.app.lox;
 
 import com.cristian.app.Lox;
 
-public class Interpreter implements Expr.Visitor<Object> {
+import java.util.List;
 
-    public void interpret(Expr expression) {
+public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
+    private Environment enviroment = new Environment();
+
+    public void interpret(List<Stmt> statements) {
         try {
-            Object value =  expression.accept(this);
-            System.out.println(stringify(value));
+            statements.forEach(stmt -> stmt.accept(this));
         } catch (RuntimeError error) {
             Lox.runtimeError(error);
         }
@@ -24,6 +26,16 @@ public class Interpreter implements Expr.Visitor<Object> {
             return text;
         }
         return value.toString();
+    }
+
+    @Override
+    public Object visitAssignExpr(Expr.Assign expr) {
+        Object value = null;
+        if (expr.value != null) {
+            value = expr.value.accept(this);
+        }
+        enviroment.assign(expr.identifier, value);
+        return value;
     }
 
     @Override
@@ -50,6 +62,7 @@ public class Interpreter implements Expr.Visitor<Object> {
             }
             case SLASH -> {
                 checkNumberOperands(operator, leftValue, rightValue);
+                if ((Double) rightValue == 0) throw new RuntimeError(operator, "Can't divide by zero.");
                 return (Double) leftValue / (Double) rightValue;
             }
             case LESS -> {
@@ -111,6 +124,11 @@ public class Interpreter implements Expr.Visitor<Object> {
         return null;
     }
 
+    @Override
+    public Object visitVariableExpr(Expr.Variable expr) {
+        return enviroment.get(expr.identifier);
+    }
+
     private void checkNumberOperand(Token operator, Object operand) {
         if (operand instanceof Double) return;
         throw new RuntimeError(operator, "Operand must be a number");
@@ -120,5 +138,40 @@ public class Interpreter implements Expr.Visitor<Object> {
         if (obj == null) return false;
         if (obj instanceof Boolean b) return b;
         return true;
+    }
+
+    @Override
+    public Void visitBlockStmt(Stmt.Block stmt) {
+        Environment previous = enviroment;
+        try {
+            this.enviroment = new Environment(previous);
+            stmt.statements.forEach(s -> s.accept(this));
+        } finally {
+            this.enviroment = previous;
+        }
+        return null;
+    }
+
+    @Override
+    public Void visitExpressionStmt(Stmt.Expression stmt) {
+        stmt.expression.accept(this);
+        return null;
+    }
+
+    @Override
+    public Void visitPrintStmt(Stmt.Print stmt) {
+        Object value = stmt.expression.accept(this);
+        System.out.println(stringify(value));
+        return null;
+    }
+
+    @Override
+    public Void visitVarStmt(Stmt.Var stmt) {
+        Object value = null;
+        if (stmt.initializer != null) {
+            value = stmt.initializer.accept(this);
+        }
+        enviroment.define(stmt.identifier.lexeme, value);
+        return null;
     }
 }

@@ -49,9 +49,9 @@ public class Lox {
         Scanner scanner = new Scanner(source);
         List<Token> tokens = scanner.scan();
         Parser parser = new Parser(tokens);
-        Expr expr = parser.parse();
+        List<Stmt> stmts = parser.parse();
         if (hadError) return;
-        interpreter.interpret(expr);
+        interpreter.interpret(stmts);
     }
 
     public static void error(int line, String msg) {
