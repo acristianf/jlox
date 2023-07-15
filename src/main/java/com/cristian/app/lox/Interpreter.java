@@ -3,10 +3,11 @@ package com.cristian.app.lox;
 
 import com.cristian.app.Lox;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
-    private Environment enviroment = new Environment();
+    private Environment environment = new Environment();
 
     private static class BreakException extends RuntimeException {
     }
@@ -37,7 +38,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         if (expr.value != null) {
             value = expr.value.accept(this);
         }
-        enviroment.assign(expr.identifier, value);
+        environment.assign(expr.identifier, value);
         return value;
     }
 
@@ -140,7 +141,44 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
     @Override
     public Object visitVariableExpr(Expr.Variable expr) {
-        return enviroment.get(expr.identifier);
+        return environment.get(expr.identifier);
+    }
+
+    @Override
+    public Object visitFunctionExpr(Expr.Function expr) {
+        Func function = (Func) environment.get(expr.identifier);
+        List<Token> names = function.params;
+
+        int lenNames = names.size();
+        int lenParams = expr.arguments.size();
+        if (lenNames != lenParams) {
+            throw new RuntimeError(expr.identifier,
+                    "Expected '" + lenNames + "' parameter/s but got '" + lenParams + "'."
+            );
+        }
+
+        function.environment = new Environment(function.closure);
+
+        List<Object> params = new ArrayList<>();
+        expr.arguments.forEach(p -> params.add(p.accept(this)));
+        for (int i = 0; i < lenParams; i++) {
+            String name = names.get(i).getLexeme();
+            function.environment.define(name, params.get(i));
+        }
+
+        Environment previous = this.environment;
+        try {
+            this.environment = function.environment;
+            function.environment.outer.outer = previous;
+            try {
+                function.body.accept(this);
+            } catch (Return returnValue) {
+                return returnValue.value;
+            }
+        } finally {
+            this.environment = previous;
+        }
+        return null;
     }
 
     private void checkNumberOperand(Token operator, Object operand) {
@@ -156,12 +194,12 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
     @Override
     public Void visitBlockStmt(Stmt.Block stmt) {
-        Environment previous = enviroment;
+        Environment previous = environment;
         try {
-            this.enviroment = new Environment(previous);
+            this.environment = new Environment(previous);
             stmt.statements.forEach(s -> s.accept(this));
         } finally {
-            this.enviroment = previous;
+            this.environment = previous;
         }
         return null;
     }
@@ -208,12 +246,25 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     }
 
     @Override
+    public Void visitReturnStmt(Stmt.Return stmt) {
+        Object value = null;
+        if (stmt.initializer != null) value = stmt.initializer.accept(this);
+        throw new Return(value);
+    }
+
+    @Override
     public Void visitVarStmt(Stmt.Var stmt) {
         Object value = null;
         if (stmt.initializer != null) {
             value = stmt.initializer.accept(this);
         }
-        enviroment.define(stmt.identifier.lexeme, value);
+        environment.define(stmt.identifier.lexeme, value);
+        return null;
+    }
+
+    @Override
+    public Void visitFunctionStmt(Stmt.Function stmt) {
+        environment.define(stmt.identifier.lexeme, new Func(stmt.identifier.lexeme, stmt.params, stmt.body, this.environment));
         return null;
     }
 }

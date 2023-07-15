@@ -54,11 +54,40 @@ public class Parser {
         if (match(FOR)) return forStatement();
         if (match(PRINT)) return printStatement();
         if (match(LEFT_BRACE)) return new Stmt.Block(block());
+        if (match(FUN)) return funStatement();
+        if (match(RETURN)) return returnStatement();
         if (match(BREAK)) {
             if (loopDepth > 0) return breakStatement();
             else throw new ParseError();
         }
         return expressionStatement();
+    }
+
+    private Stmt returnStatement() {
+        Token keyword = previous();
+        Expr value = null;
+        if (!check(SEMICOLON)) {
+            value = expression();
+        }
+        consume(SEMICOLON, "Expected ';' after return value.");
+        return new Stmt.Return(keyword, value);
+    }
+
+    private Stmt funStatement() {
+        Token identifier = new Token(IDENTIFIER, "", null, tokens.get(current).line);
+        if (match(IDENTIFIER)) {
+            identifier = previous();
+        }
+        consume(LEFT_PAREN, "Expect '(' after function identifier.");
+        List<Token> params = new ArrayList<>();
+        while (match(IDENTIFIER)) {
+            Token param = previous();
+            params.add(param);
+            match(COMMA);
+        }
+        consume(RIGHT_PAREN, "Expect ')' after param list.");
+        Stmt body = statement();
+        return new Stmt.Function(identifier, params, body);
     }
 
     private Stmt breakStatement() {
@@ -241,12 +270,28 @@ public class Parser {
         return primary();
     }
 
+    private Expr funExpression(Token identifier) {
+        List<Expr> params = new ArrayList<>();
+        while (!isAtEnd() && !check(RIGHT_PAREN)) {
+            params.add(expression());
+            match(COMMA);
+        }
+        consume(RIGHT_PAREN, "Expected ')' after param list.");
+        return new Expr.Function(identifier, params);
+    }
+
     private Expr primary() {
         if (match(FALSE)) return new Expr.Literal(false);
         if (match(TRUE)) return new Expr.Literal(true);
         if (match(NIL)) return new Expr.Literal(null);
         if (match(NUMBER, STRING)) return new Expr.Literal(previous().literal);
-        if (match(IDENTIFIER)) return new Expr.Variable(previous());
+        if (match(IDENTIFIER)) {
+            Token identifier = previous();
+            if (match(LEFT_PAREN)) {
+                return funExpression(identifier);
+            }
+            return new Expr.Variable(identifier);
+        }
         if (match(LEFT_PAREN)) {
             Expr expr = expression();
             consume(RIGHT_PAREN, "Expect ')' after expression.");

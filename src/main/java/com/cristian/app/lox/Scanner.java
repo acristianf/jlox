@@ -14,7 +14,7 @@ public class Scanner {
     private final List<Token> tokens = new ArrayList<>();
     private int start;
     private int current;
-    private int line;
+    private int line = 1;
     private static final Map<String, TokenType> keywords;
 
     static {

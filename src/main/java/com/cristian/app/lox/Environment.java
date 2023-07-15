@@ -1,10 +1,10 @@
 package com.cristian.app.lox;
 
 import java.util.HashMap;
+import java.util.Set;
 
 public class Environment {
-    final Environment outer;
-
+    Environment outer;
     private final HashMap<String, Object> values = new HashMap<>();
 
     public Environment() {
@@ -51,6 +51,10 @@ public class Environment {
         if (this.outer != null) {
             return outer.get(identifier);
         }
-        throw new RuntimeError(identifier, "Undefined variable '" + identifier.lexeme + "'.");
+        throw new RuntimeError(identifier, "Undefined identifier '" + identifier.lexeme + "'.");
+    }
+
+    public String[] getVariableNames() {
+        return values.keySet().toArray(new String[0]);
     }
 }

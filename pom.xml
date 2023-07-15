@@ -12,6 +12,7 @@
     <mavenJarPlugin.version>3.2.0</mavenJarPlugin.version>
     <maven.compiler.source>20</maven.compiler.source>
     <maven.compiler.target>20</maven.compiler.target>
+    <mavenChangelogPlugin.version>2.3</mavenChangelogPlugin.version>
   </properties>
   <dependencies>
     <dependency>
@@ -21,6 +22,20 @@
       <scope>test</scope>
     </dependency>
   </dependencies>
+  <reporting>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-changelog-plugin</artifactId>
+        <version>${mavenChangelogPlugin.version}</version>
+      </plugin>
+    </plugins>
+  </reporting>
+  <scm>
+   <connection>scm:git:ssh//git@github.com:acristianf/jlox.git</connection>
+    <developerConnection>scm:git:ssh//git@github.com:acristianf/jlox.git</developerConnection>
+    <url>https://github.com/acristianf/jlox</url>
+  </scm>
   <build>
     <plugins>
       <plugin>

@@ -42,4 +42,9 @@ public class AstPrinter implements Expr.Visitor<String> {
     public String visitVariableExpr(Expr.Variable expr) {
         return "(var " + expr.identifier.lexeme + ")";
     }
+
+    @Override
+    public String visitFunctionExpr(Expr.Function expr) {
+        return null;
+    }
 }

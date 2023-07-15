@@ -20,7 +20,8 @@ public class GenerateAst {
                 "Grouping : Expr expression",
                 "Literal : Object value",
                 "Unary : Token operator, Expr right",
-                "Variable : Token identifier"
+                "Variable : Token identifier",
+                "Function : Token identifier, List<Expr> arguments"
         ));
         defineAst(outputDir, "Stmt", Arrays.asList(
                 "Block : List<Stmt> statements",
@@ -29,7 +30,9 @@ public class GenerateAst {
                 "Break",
                 "Expression : Expr expression",
                 "Print : Expr expression",
-                "Var : Token identifier, Expr initializer"
+                "Return : Token name, Expr initializer",
+                "Var : Token identifier, Expr initializer",
+                "Function : Token identifier, List<Token> params, Stmt body"
         ));
     }
 
