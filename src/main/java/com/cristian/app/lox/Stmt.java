@@ -71,9 +71,11 @@ public abstract class Stmt {
     }
 
     public static class Break extends Stmt {
-        Break() {
+        Break(Token breakToken) {
+            this.breakToken = breakToken;
         }
 
+        final Token breakToken;
 
         @Override
         <R> R accept(Visitor<R> visitor) {

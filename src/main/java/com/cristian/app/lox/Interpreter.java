@@ -4,10 +4,18 @@ package com.cristian.app.lox;
 import com.cristian.app.Lox;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     private Environment environment = new Environment();
+    private final Environment globals = environment;
+    private final Map<Expr, Integer> locals = new HashMap<>();
+
+    public void resolve(Expr expr, int depth) {
+        locals.put(expr, depth);
+    }
 
     private static class BreakException extends RuntimeException {
     }
@@ -38,7 +46,12 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         if (expr.value != null) {
             value = expr.value.accept(this);
         }
-        environment.assign(expr.identifier, value);
+        Integer distance = locals.get(expr);
+        if (distance != null) {
+            environment.assignAt(distance, expr.identifier, value);
+        } else {
+            globals.assign(expr.identifier, value);
+        }
         return value;
     }
 
@@ -141,7 +154,16 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
     @Override
     public Object visitVariableExpr(Expr.Variable expr) {
-        return environment.get(expr.identifier);
+        return lookUpVariable(expr.identifier, expr);
+    }
+
+    private Object lookUpVariable(Token identifier, Expr.Variable expr) {
+        Integer distance = locals.get(expr);
+        if (distance != null) {
+            return environment.getAt(distance, identifier.lexeme);
+        } else {
+            return globals.get(identifier);
+        }
     }
 
     @Override
@@ -169,7 +191,6 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         Environment previous = this.environment;
         try {
             this.environment = function.environment;
-            function.environment.outer.outer = previous;
             try {
                 function.body.accept(this);
             } catch (Return returnValue) {

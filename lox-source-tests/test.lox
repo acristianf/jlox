@@ -1,4 +1,25 @@
-fun test() {
-    print 1;
+print "TEST 1: FUNCTIONS LEAKING";
+var a = "global";
+{
+    fun showA() {
+        print a;
+    }
+
+    showA();
+    var a = "block";
+    showA();
 }
-test();
+
+print "TEST 2: CLOSURES";
+fun makeCounter() {
+    var i = 0;
+    fun count() {
+        i = i + 1;
+        print i;
+    }
+    return count;
+}
+
+var counter = makeCounter();
+counter();
+counter();

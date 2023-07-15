@@ -27,7 +27,7 @@ public class GenerateAst {
                 "Block : List<Stmt> statements",
                 "If : Expr condition, Stmt thenBranch, Stmt elseBranch",
                 "While : Expr condition, Stmt body",
-                "Break",
+                "Break : Token breakToken",
                 "Expression : Expr expression",
                 "Print : Expr expression",
                 "Return : Token name, Expr initializer",

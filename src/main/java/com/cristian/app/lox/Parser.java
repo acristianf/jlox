@@ -58,7 +58,7 @@ public class Parser {
         if (match(RETURN)) return returnStatement();
         if (match(BREAK)) {
             if (loopDepth > 0) return breakStatement();
-            else throw new ParseError();
+            else throw error(previous(), "Can't break outside loop.");
         }
         return expressionStatement();
     }
@@ -91,7 +91,7 @@ public class Parser {
     }
 
     private Stmt breakStatement() {
-        Stmt stmt = new Stmt.Break();
+        Stmt stmt = new Stmt.Break(previous());
         consume(SEMICOLON, "Expected ';' after break.");
         return stmt;
     }
