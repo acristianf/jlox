@@ -10,7 +10,8 @@ import java.util.Stack;
 public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     private final Interpreter interpreter;
     private final Stack<Map<String, Boolean>> scopes = new Stack<>();
-    private FunctionType currentFuntion = FunctionType.NONE;
+    private final Stack<Token> variablesUsed = new Stack<>();
+    private FunctionType currentFunction = FunctionType.NONE;
 
     public Resolver(Interpreter interpreter) {
         this.interpreter = interpreter;
@@ -18,6 +19,9 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
 
     public void resolve(List<Stmt> statements) {
         statements.forEach(this::resolve);
+        if (!variablesUsed.empty()) {
+            Lox.error(variablesUsed.pop(), "Local variable not used.");
+        }
     }
 
     private void resolve(Stmt s) {
@@ -76,6 +80,7 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     }
 
     private void resolveLocal(Expr expr, Token identifier) {
+        if (!variablesUsed.empty()) variablesUsed.pop();
         for (int i = scopes.size() - 1; i >= 0; i--) {
             if (scopes.get(i).containsKey(identifier.lexeme)) {
                 interpreter.resolve(expr, scopes.size() - 1 - i);
@@ -140,7 +145,7 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
 
     @Override
     public Void visitReturnStmt(Stmt.Return stmt) {
-        if (currentFuntion == FunctionType.NONE) {
+        if (currentFunction == FunctionType.NONE) {
             Lox.error(stmt.name, "Can't return from top-level code.");
         }
         if (stmt.initializer != null) {
@@ -171,6 +176,7 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
             Lox.error(identifier, "Already a variable with this name in this scope.");
         }
         scope.put(identifier.lexeme, false);
+        variablesUsed.push(identifier);
     }
 
     @Override
@@ -182,8 +188,8 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     }
 
     private void resolveFunction(Stmt.Function function, FunctionType functionType) {
-        FunctionType enclosingFunction = currentFuntion;
-        currentFuntion = functionType;
+        FunctionType enclosingFunction = currentFunction;
+        currentFunction = functionType;
         beginScope();
         for (Token param : function.params) {
             declare(param);
@@ -191,6 +197,6 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
         }
         resolve(function.body);
         endScope();
-        currentFuntion = enclosingFunction;
+        currentFunction = enclosingFunction;
     }
 }
