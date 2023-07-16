@@ -27,6 +27,8 @@ public abstract class Expr {
         R visitGetExpr(Get expr);
 
         R visitSetExpr(Set expr);
+
+        R visitThisExpr(This expr);
     }
 
     public static class Assign extends Expr {
@@ -193,6 +195,19 @@ public abstract class Expr {
         @Override
         <R> R accept(Visitor<R> visitor) {
             return visitor.visitSetExpr(this);
+        }
+    }
+
+    public static class This extends Expr {
+        This( Token keyword) {
+            this.keyword = keyword;
+        }
+
+        final  Token keyword;
+
+        @Override
+        <R> R accept(Visitor<R> visitor) {
+            return visitor.visitThisExpr(this);
         }
     }
 

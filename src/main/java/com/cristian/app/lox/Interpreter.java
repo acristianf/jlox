@@ -166,7 +166,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         return lookUpVariable(expr.identifier, expr);
     }
 
-    private Object lookUpVariable(Token identifier, Expr.Variable expr) {
+    private Object lookUpVariable(Token identifier, Expr expr) {
         Integer distance = locals.get(expr);
         if (distance != null) {
             return environment.getAt(distance, identifier.lexeme);
@@ -199,6 +199,11 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         Object value = expr.value.accept(this);
         ((LoxInstance) obj).set(expr.identifier, value);
         return value;
+    }
+
+    @Override
+    public Object visitThisExpr(Expr.This expr) {
+        return lookUpVariable(expr.keyword, expr);
     }
 
     private void checkNumberOperand(Token operator, Object operand) {

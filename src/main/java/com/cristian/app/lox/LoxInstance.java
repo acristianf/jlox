@@ -23,7 +23,7 @@ public class LoxInstance {
             return fields.get(identifier.lexeme);
         }
         Func method = klass.findMethod(identifier.lexeme);
-        if (method != null) return method;
+        if (method != null) return method.bind(this);
         throw new RuntimeError(identifier, "Undefined property '" + identifier.lexeme + "'.");
     }
 

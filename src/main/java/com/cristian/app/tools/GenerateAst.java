@@ -24,7 +24,8 @@ public class GenerateAst {
                 "Variable : Token identifier",
                 "Class : Token identifier, List<Expr> arguments",
                 "Get : Expr object, Token identifier",
-                "Set : Expr object, Token identifier, Expr value"
+                "Set : Expr object, Token identifier, Expr value",
+                "This : Token keyword"
         ));
         defineAst(outputDir, "Stmt", Arrays.asList(
                 "Block : List<Stmt> statements",

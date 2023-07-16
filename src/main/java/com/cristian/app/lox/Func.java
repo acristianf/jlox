@@ -34,4 +34,10 @@ public class Func implements LoxCallable {
         }
         return null;
     }
+
+    public Object bind(LoxInstance loxInstance) {
+        environment = new Environment(closure);
+        environment.define("this", loxInstance);
+        return new Func(name, params, body, environment);
+    }
 }

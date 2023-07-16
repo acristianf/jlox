@@ -319,6 +319,7 @@ public class Parser {
         if (match(NUMBER, STRING)) return new Expr.Literal(previous().literal);
         if (match(NEW)) return classExpression();
         if (match(IDENTIFIER)) return new Expr.Variable(previous());
+        if (match(THIS)) return new Expr.This(previous());
         if (match(LEFT_PAREN)) {
             Expr expr = expression();
             consume(RIGHT_PAREN, "Expect ')' after expression.");
