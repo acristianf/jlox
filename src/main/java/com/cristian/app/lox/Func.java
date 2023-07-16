@@ -35,6 +35,11 @@ public class Func implements LoxCallable {
         return null;
     }
 
+    @Override
+    public int arity() {
+        return params.size();
+    }
+
     public Object bind(LoxInstance loxInstance) {
         environment = new Environment(closure);
         environment.define("this", loxInstance);

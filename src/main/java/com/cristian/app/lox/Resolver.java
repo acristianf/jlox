@@ -227,6 +227,9 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
         scopes.peek().put("this", true);
         stmt.methods.forEach(method -> {
             FunctionType declaration = FunctionType.METHOD;
+            if (method.identifier.lexeme.equals(stmt.identifier.lexeme)) {
+                declaration = FunctionType.CONSTRUCTOR;
+            }
             resolveFunction(method, declaration);
         });
         endScope();

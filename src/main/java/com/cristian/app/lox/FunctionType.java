@@ -1,5 +1,5 @@
 package com.cristian.app.lox;
 
 public enum FunctionType {
-    NONE, FUNCTION, METHOD
+    NONE, FUNCTION, METHOD, CONSTRUCTOR
 }

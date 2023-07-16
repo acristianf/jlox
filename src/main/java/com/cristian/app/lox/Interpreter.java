@@ -76,7 +76,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
                 if (leftValue instanceof Double && rightValue instanceof Double) {
                     return (Double) leftValue + (Double) rightValue;
                 } else if (leftValue instanceof String && rightValue instanceof String) {
-                    return (String) leftValue + (String) rightValue;
+                    return leftValue + (String) rightValue;
                 }
                 throw new RuntimeError(operator, "Operands must be String or Numbers");
             }
@@ -124,6 +124,10 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         List<Object> arguments = new ArrayList<>();
         expr.arguments.forEach(a -> arguments.add(a.accept(this)));
         LoxCallable function = (LoxCallable) callee;
+        if (arguments.size() != function.arity()) {
+            throw new RuntimeError(expr.paren, "Expected " + function.arity() + " arguments but got "
+                    + arguments.size() + ".");
+        }
         return function.call(this, arguments);
     }
 
@@ -178,7 +182,18 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     @Override
     public Object visitClassExpr(Expr.Class expr) {
         LoxClass klass = (LoxClass) environment.get(expr.identifier);
-        return new LoxInstance(klass);
+        LoxInstance instance = new LoxInstance(klass);
+        Object constructor = instance.klass.findMethod(expr.identifier.lexeme);
+        if (constructor instanceof Func c) {
+            List<Object> args = new ArrayList<>();
+            expr.arguments.forEach(a -> args.add(a.accept(this)));
+            if (args.size() != c.arity()) {
+                throw new RuntimeError(expr.identifier, "Class constructor expected " + c.arity() + " arguments but got " +
+                        args.size() + " instead.");
+            }
+            c.call(this, args);
+        }
+        return instance;
     }
 
     @Override
