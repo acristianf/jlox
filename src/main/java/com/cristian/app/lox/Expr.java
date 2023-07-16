@@ -21,6 +21,8 @@ public abstract class Expr {
         R visitVariableExpr(Variable expr);
 
         R visitFunctionExpr(Function expr);
+
+        R visitClassExpr(Class expr);
     }
 
     public static class Assign extends Expr {
@@ -138,6 +140,21 @@ public abstract class Expr {
         @Override
         <R> R accept(Visitor<R> visitor) {
             return visitor.visitFunctionExpr(this);
+        }
+    }
+
+    public static class Class extends Expr {
+        Class(Token identifier, List<Expr> arguments) {
+            this.identifier = identifier;
+            this.arguments = arguments;
+        }
+
+        final Token identifier;
+        final List<Expr> arguments;
+
+        @Override
+        <R> R accept(Visitor<R> visitor) {
+            return visitor.visitClassExpr(this);
         }
     }
 

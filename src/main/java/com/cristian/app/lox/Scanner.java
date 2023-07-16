@@ -36,6 +36,7 @@ public class Scanner {
         keywords.put("var", VAR);
         keywords.put("fun", FUN);
         keywords.put("break", BREAK);
+        keywords.put("new", NEW);
     }
 
     public Scanner(String source) {

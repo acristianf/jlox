@@ -31,11 +31,23 @@ public class Parser {
     private Stmt declaration() {
         try {
             if (match(VAR)) return varDeclaration();
+            if (match(CLASS)) return classDeclaration();
             return statement();
         } catch (ParseError error) {
             synchronize();
             return null;
         }
+    }
+
+    private Stmt classDeclaration() {
+        Token identifier = consume(IDENTIFIER, "Expect identifier after class.");
+        consume(LEFT_BRACE, "Expect '{' before class body.");
+        List<Stmt.Function> methods = new ArrayList<>();
+        while (!isAtEnd() && !check(RIGHT_BRACE)) {
+            methods.add(funStatement());
+        }
+        consume(RIGHT_BRACE, "Expect '}' to end class declaration.");
+        return new Stmt.Class(identifier, methods);
     }
 
     private Stmt varDeclaration() {
@@ -73,7 +85,7 @@ public class Parser {
         return new Stmt.Return(keyword, value);
     }
 
-    private Stmt funStatement() {
+    private Stmt.Function funStatement() {
         Token identifier = new Token(IDENTIFIER, "", null, tokens.get(current).line);
         if (match(IDENTIFIER)) {
             identifier = previous();
@@ -285,6 +297,7 @@ public class Parser {
         if (match(TRUE)) return new Expr.Literal(true);
         if (match(NIL)) return new Expr.Literal(null);
         if (match(NUMBER, STRING)) return new Expr.Literal(previous().literal);
+        if (match(NEW)) return classExpression();
         if (match(IDENTIFIER)) {
             Token identifier = previous();
             if (match(LEFT_PAREN)) {
@@ -298,6 +311,18 @@ public class Parser {
             return new Expr.Grouping(expr);
         }
         throw error(peek(), "Expect expression.");
+    }
+
+    private Expr classExpression() {
+        Token identifier = consume(IDENTIFIER, "Expected class identifier after new.");
+        consume(LEFT_PAREN, "Expected '(' after identifier.");
+        List<Expr> args = new ArrayList<>();
+        while (!isAtEnd() && !check(RIGHT_PAREN)) {
+            args.add(expression());
+            match(COMMA);
+        }
+        consume(RIGHT_PAREN, "Expected ')' after args list.");
+        return new Expr.Class(identifier, args);
     }
 
     private Token consume(TokenType tokenType, String errMsg) {

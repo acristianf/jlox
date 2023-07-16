@@ -21,7 +21,8 @@ public class GenerateAst {
                 "Literal : Object value",
                 "Unary : Token operator, Expr right",
                 "Variable : Token identifier",
-                "Function : Token identifier, List<Expr> arguments"
+                "Function : Token identifier, List<Expr> arguments",
+                "Class : Token identifier, List<Expr> arguments"
         ));
         defineAst(outputDir, "Stmt", Arrays.asList(
                 "Block : List<Stmt> statements",
@@ -32,7 +33,8 @@ public class GenerateAst {
                 "Print : Expr expression",
                 "Return : Token name, Expr initializer",
                 "Var : Token identifier, Expr initializer",
-                "Function : Token identifier, List<Token> params, Stmt body"
+                "Function : Token identifier, List<Token> params, Stmt body",
+                "Class : Token identifier, List<Stmt.Function> methods"
         ));
     }
 

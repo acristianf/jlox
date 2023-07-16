@@ -47,4 +47,9 @@ public class AstPrinter implements Expr.Visitor<String> {
     public String visitFunctionExpr(Expr.Function expr) {
         return null;
     }
+
+    @Override
+    public String visitClassExpr(Expr.Class expr) {
+        return null;
+    }
 }

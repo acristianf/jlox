@@ -96,6 +96,12 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     }
 
     @Override
+    public Void visitClassExpr(Expr.Class expr) {
+        expr.arguments.forEach(this::resolve);
+        return null;
+    }
+
+    @Override
     public Void visitBlockStmt(Stmt.Block stmt) {
         beginScope();
         resolve(stmt.statements);
@@ -184,6 +190,13 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
         declare(stmt.identifier);
         define(stmt.identifier);
         resolveFunction(stmt, FunctionType.FUNCTION);
+        return null;
+    }
+
+    @Override
+    public Void visitClassStmt(Stmt.Class stmt) {
+        declare(stmt.identifier);
+        define(stmt.identifier);
         return null;
     }
 
