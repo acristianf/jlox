@@ -98,7 +98,8 @@ public class Parser {
             match(COMMA);
         }
         consume(RIGHT_PAREN, "Expect ')' after param list.");
-        Stmt body = statement();
+        consume(LEFT_BRACE, "Expect '}' after function parameter list.");
+        List<Stmt> body = block();
         return new Stmt.Function(identifier, params, body);
     }
 
@@ -198,6 +199,8 @@ public class Parser {
             if (expr instanceof Expr.Variable) {
                 Token identifier = ((Expr.Variable) expr).identifier;
                 return new Expr.Assign(identifier, value);
+            } else if (expr instanceof Expr.Get get) {
+                return new Expr.Set(get.object, get.identifier, value);
             }
             throw error(equals, "Invalid assignment target.");
         }
@@ -275,21 +278,38 @@ public class Parser {
     private Expr unary() {
         if (match(MINUS, BANG)) {
             Token operator = previous();
-            Expr right = primary();
+            Expr right = call();
             return new Expr.Unary(operator, right);
         }
 
-        return primary();
+        return call();
     }
 
-    private Expr funExpression(Token identifier) {
-        List<Expr> params = new ArrayList<>();
-        while (!isAtEnd() && !check(RIGHT_PAREN)) {
-            params.add(expression());
-            match(COMMA);
+    private Expr call() {
+        Expr expr = primary();
+        while (true) {
+            if (match(LEFT_PAREN)) {
+                expr = finishCall(expr);
+            } else if (match(DOT)) {
+                Token identifier = consume(IDENTIFIER, "Expected identifier after '.'.");
+                expr = new Expr.Get(expr, identifier);
+            } else {
+                break;
+            }
         }
-        consume(RIGHT_PAREN, "Expected ')' after param list.");
-        return new Expr.Function(identifier, params);
+
+        return expr;
+    }
+
+    private Expr finishCall(Expr callee) {
+        List<Expr> arguments = new ArrayList<>();
+        if (!check(RIGHT_PAREN)) {
+            do {
+                arguments.add(expression());
+            } while (match(COMMA));
+        }
+        Token paren = consume(RIGHT_PAREN, "Expect ')' after arguments");
+        return new Expr.Call(callee, paren, arguments);
     }
 
     private Expr primary() {
@@ -298,13 +318,7 @@ public class Parser {
         if (match(NIL)) return new Expr.Literal(null);
         if (match(NUMBER, STRING)) return new Expr.Literal(previous().literal);
         if (match(NEW)) return classExpression();
-        if (match(IDENTIFIER)) {
-            Token identifier = previous();
-            if (match(LEFT_PAREN)) {
-                return funExpression(identifier);
-            }
-            return new Expr.Variable(identifier);
-        }
+        if (match(IDENTIFIER)) return new Expr.Variable(previous());
         if (match(LEFT_PAREN)) {
             Expr expr = expression();
             consume(RIGHT_PAREN, "Expect ')' after expression.");

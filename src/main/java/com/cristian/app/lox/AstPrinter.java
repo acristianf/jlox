@@ -23,6 +23,11 @@ public class AstPrinter implements Expr.Visitor<String> {
     }
 
     @Override
+    public String visitCallExpr(Expr.Call expr) {
+        return null;
+    }
+
+    @Override
     public String visitGroupingExpr(Expr.Grouping expr) {
         return "(group " + expr.expression.accept(this) + ")";
     }
@@ -43,13 +48,19 @@ public class AstPrinter implements Expr.Visitor<String> {
         return "(var " + expr.identifier.lexeme + ")";
     }
 
+
     @Override
-    public String visitFunctionExpr(Expr.Function expr) {
+    public String visitClassExpr(Expr.Class expr) {
         return null;
     }
 
     @Override
-    public String visitClassExpr(Expr.Class expr) {
+    public String visitGetExpr(Expr.Get expr) {
+        return null;
+    }
+
+    @Override
+    public String visitSetExpr(Expr.Set expr) {
         return null;
     }
 }

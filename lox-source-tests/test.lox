@@ -1,36 +1,7 @@
-print "TEST 1: FUNCTIONS LEAKING";
-var a = "global";
-{
-    fun showA() {
-        print a;
-    }
-
-    showA();
-    //var a = "block";
-    showA();
-}
-
-print "TEST 2: CLOSURES";
-fun makeCounter() {
-    var i = 0;
-    fun count() {
-        i = i + 1;
-        print i;
-    }
-    return count;
-}
-
-var counter = makeCounter();
-counter();
-counter();
-
-print "TEST 3: CLASSES";
-class Test {
-    serveOn() {
-        return "Scones";
+class Bacon {
+    eat() {
+        print "Crunch";
     }
 }
-print Test;
-
-var instance = new Test();
-print instance;
+var instance = new Bacon();
+instance.eat();

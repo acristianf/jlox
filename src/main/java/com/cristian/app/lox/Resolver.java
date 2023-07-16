@@ -54,6 +54,13 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     }
 
     @Override
+    public Void visitCallExpr(Expr.Call expr) {
+        resolve(expr.callee);
+        expr.arguments.forEach(this::resolve);
+        return null;
+    }
+
+    @Override
     public Void visitGroupingExpr(Expr.Grouping expr) {
         resolve(expr.expression);
         return null;
@@ -90,14 +97,21 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     }
 
     @Override
-    public Void visitFunctionExpr(Expr.Function expr) {
+    public Void visitClassExpr(Expr.Class expr) {
         expr.arguments.forEach(this::resolve);
         return null;
     }
 
     @Override
-    public Void visitClassExpr(Expr.Class expr) {
-        expr.arguments.forEach(this::resolve);
+    public Void visitGetExpr(Expr.Get expr) {
+        resolve(expr.object);
+        return null;
+    }
+
+    @Override
+    public Void visitSetExpr(Expr.Set expr) {
+        resolve(expr.value);
+        resolve(expr.object);
         return null;
     }
 
@@ -197,6 +211,10 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     public Void visitClassStmt(Stmt.Class stmt) {
         declare(stmt.identifier);
         define(stmt.identifier);
+        stmt.methods.forEach(method -> {
+            FunctionType declaration = FunctionType.METHOD;
+            resolveFunction(method, declaration);
+        });
         return null;
     }
 

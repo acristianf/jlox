@@ -12,6 +12,8 @@ public abstract class Expr {
 
         R visitBinaryExpr(Binary expr);
 
+        R visitCallExpr(Call expr);
+
         R visitGroupingExpr(Grouping expr);
 
         R visitLiteralExpr(Literal expr);
@@ -20,19 +22,21 @@ public abstract class Expr {
 
         R visitVariableExpr(Variable expr);
 
-        R visitFunctionExpr(Function expr);
-
         R visitClassExpr(Class expr);
+
+        R visitGetExpr(Get expr);
+
+        R visitSetExpr(Set expr);
     }
 
     public static class Assign extends Expr {
-        Assign(Token identifier, Expr value) {
+        Assign( Token identifier,  Expr value) {
             this.identifier = identifier;
             this.value = value;
         }
 
-        final Token identifier;
-        final Expr value;
+        final  Token identifier;
+        final  Expr value;
 
         @Override
         <R> R accept(Visitor<R> visitor) {
@@ -41,15 +45,15 @@ public abstract class Expr {
     }
 
     public static class Logical extends Expr {
-        Logical(Expr left, Token operator, Expr right) {
+        Logical( Expr left,  Token operator,  Expr right) {
             this.left = left;
             this.operator = operator;
             this.right = right;
         }
 
-        final Expr left;
-        final Token operator;
-        final Expr right;
+        final  Expr left;
+        final  Token operator;
+        final  Expr right;
 
         @Override
         <R> R accept(Visitor<R> visitor) {
@@ -58,15 +62,15 @@ public abstract class Expr {
     }
 
     public static class Binary extends Expr {
-        Binary(Expr left, Token operator, Expr right) {
+        Binary( Expr left,  Token operator,  Expr right) {
             this.left = left;
             this.operator = operator;
             this.right = right;
         }
 
-        final Expr left;
-        final Token operator;
-        final Expr right;
+        final  Expr left;
+        final  Token operator;
+        final  Expr right;
 
         @Override
         <R> R accept(Visitor<R> visitor) {
@@ -74,12 +78,29 @@ public abstract class Expr {
         }
     }
 
+    public static class Call extends Expr {
+        Call( Expr callee,  Token paren,  List<Expr> arguments) {
+            this.callee = callee;
+            this.paren = paren;
+            this.arguments = arguments;
+        }
+
+        final  Expr callee;
+        final  Token paren;
+        final  List<Expr> arguments;
+
+        @Override
+        <R> R accept(Visitor<R> visitor) {
+            return visitor.visitCallExpr(this);
+        }
+    }
+
     public static class Grouping extends Expr {
-        Grouping(Expr expression) {
+        Grouping( Expr expression) {
             this.expression = expression;
         }
 
-        final Expr expression;
+        final  Expr expression;
 
         @Override
         <R> R accept(Visitor<R> visitor) {
@@ -88,11 +109,11 @@ public abstract class Expr {
     }
 
     public static class Literal extends Expr {
-        Literal(Object value) {
+        Literal( Object value) {
             this.value = value;
         }
 
-        final Object value;
+        final  Object value;
 
         @Override
         <R> R accept(Visitor<R> visitor) {
@@ -101,13 +122,13 @@ public abstract class Expr {
     }
 
     public static class Unary extends Expr {
-        Unary(Token operator, Expr right) {
+        Unary( Token operator,  Expr right) {
             this.operator = operator;
             this.right = right;
         }
 
-        final Token operator;
-        final Expr right;
+        final  Token operator;
+        final  Expr right;
 
         @Override
         <R> R accept(Visitor<R> visitor) {
@@ -116,11 +137,11 @@ public abstract class Expr {
     }
 
     public static class Variable extends Expr {
-        Variable(Token identifier) {
+        Variable( Token identifier) {
             this.identifier = identifier;
         }
 
-        final Token identifier;
+        final  Token identifier;
 
         @Override
         <R> R accept(Visitor<R> visitor) {
@@ -128,33 +149,50 @@ public abstract class Expr {
         }
     }
 
-    public static class Function extends Expr {
-        Function(Token identifier, List<Expr> arguments) {
-            this.identifier = identifier;
-            this.arguments = arguments;
-        }
-
-        final Token identifier;
-        final List<Expr> arguments;
-
-        @Override
-        <R> R accept(Visitor<R> visitor) {
-            return visitor.visitFunctionExpr(this);
-        }
-    }
-
     public static class Class extends Expr {
-        Class(Token identifier, List<Expr> arguments) {
+        Class( Token identifier,  List<Expr> arguments) {
             this.identifier = identifier;
             this.arguments = arguments;
         }
 
-        final Token identifier;
-        final List<Expr> arguments;
+        final  Token identifier;
+        final  List<Expr> arguments;
 
         @Override
         <R> R accept(Visitor<R> visitor) {
             return visitor.visitClassExpr(this);
+        }
+    }
+
+    public static class Get extends Expr {
+        Get( Expr object,  Token identifier) {
+            this.object = object;
+            this.identifier = identifier;
+        }
+
+        final  Expr object;
+        final  Token identifier;
+
+        @Override
+        <R> R accept(Visitor<R> visitor) {
+            return visitor.visitGetExpr(this);
+        }
+    }
+
+    public static class Set extends Expr {
+        Set( Expr object,  Token identifier,  Expr value) {
+            this.object = object;
+            this.identifier = identifier;
+            this.value = value;
+        }
+
+        final  Expr object;
+        final  Token identifier;
+        final  Expr value;
+
+        @Override
+        <R> R accept(Visitor<R> visitor) {
+            return visitor.visitSetExpr(this);
         }
     }
 

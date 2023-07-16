@@ -10,7 +10,7 @@ import java.util.Map;
 
 public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     private Environment environment = new Environment();
-    private final Environment globals = environment;
+    final Environment globals = environment;
     private final Map<Expr, Integer> locals = new HashMap<>();
 
     public void resolve(Expr expr, int depth) {
@@ -118,6 +118,15 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         return null;
     }
 
+    @Override
+    public Object visitCallExpr(Expr.Call expr) {
+        Object callee = expr.callee.accept(this);
+        List<Object> arguments = new ArrayList<>();
+        expr.arguments.forEach(a -> arguments.add(a.accept(this)));
+        LoxCallable function = (LoxCallable) callee;
+        return function.call(this, arguments);
+    }
+
     private void checkNumberOperands(Token operator, Object leftValue, Object rightValue) {
         if (leftValue instanceof Double && rightValue instanceof Double) return;
         throw new RuntimeError(operator, "Operands must be both Numbers");
@@ -167,45 +176,29 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     }
 
     @Override
-    public Object visitFunctionExpr(Expr.Function expr) {
-        Func function = (Func) environment.get(expr.identifier);
-        List<Token> names = function.params;
-
-        int lenNames = names.size();
-        int lenParams = expr.arguments.size();
-        if (lenNames != lenParams) {
-            throw new RuntimeError(expr.identifier,
-                    "Expected '" + lenNames + "' parameter/s but got '" + lenParams + "'."
-            );
-        }
-
-        function.environment = new Environment(function.closure);
-
-        List<Object> params = new ArrayList<>();
-        expr.arguments.forEach(p -> params.add(p.accept(this)));
-        for (int i = 0; i < lenParams; i++) {
-            String name = names.get(i).getLexeme();
-            function.environment.define(name, params.get(i));
-        }
-
-        Environment previous = this.environment;
-        try {
-            this.environment = function.environment;
-            try {
-                function.body.accept(this);
-            } catch (Return returnValue) {
-                return returnValue.value;
-            }
-        } finally {
-            this.environment = previous;
-        }
-        return null;
-    }
-
-    @Override
     public Object visitClassExpr(Expr.Class expr) {
         LoxClass klass = (LoxClass) environment.get(expr.identifier);
         return new LoxInstance(klass);
+    }
+
+    @Override
+    public Object visitGetExpr(Expr.Get expr) {
+        Object obj = expr.object.accept(this);
+        if (obj instanceof LoxInstance) {
+            return ((LoxInstance) obj).get(expr.identifier);
+        }
+        throw new RuntimeError(expr.identifier, "Only instances have properties.");
+    }
+
+    @Override
+    public Object visitSetExpr(Expr.Set expr) {
+        Object obj = expr.object.accept(this);
+        if (!(obj instanceof LoxInstance)) {
+            throw new RuntimeError(expr.identifier, "Only instances have fields");
+        }
+        Object value = expr.value.accept(this);
+        ((LoxInstance) obj).set(expr.identifier, value);
+        return value;
     }
 
     private void checkNumberOperand(Token operator, Object operand) {
@@ -219,15 +212,19 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         return true;
     }
 
-    @Override
-    public Void visitBlockStmt(Stmt.Block stmt) {
-        Environment previous = environment;
+    public void executeBlock(List<Stmt> block, Environment environment) {
+        Environment previous = this.environment;
         try {
-            this.environment = new Environment(previous);
-            stmt.statements.forEach(s -> s.accept(this));
+            this.environment = environment;
+            block.forEach(s -> s.accept(this));
         } finally {
             this.environment = previous;
         }
+    }
+
+    @Override
+    public Void visitBlockStmt(Stmt.Block stmt) {
+        stmt.statements.forEach(s -> s.accept(this));
         return null;
     }
 
@@ -298,7 +295,12 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     @Override
     public Void visitClassStmt(Stmt.Class stmt) {
         environment.define(stmt.identifier.lexeme, null);
-        LoxClass klass = new LoxClass(stmt.identifier.lexeme);
+        Map<String, Func> methods = new HashMap<>();
+        stmt.methods.forEach(method -> {
+            Func function = new Func(method.identifier.lexeme, method.params, method.body, environment);
+            methods.put(method.identifier.lexeme, function);
+        });
+        LoxClass klass = new LoxClass(stmt.identifier.lexeme, methods);
         environment.assign(stmt.identifier, klass);
         return null;
     }
