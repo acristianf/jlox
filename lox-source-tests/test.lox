@@ -1,9 +1,11 @@
-class Cake {
-    greet() {
-        print "Hello " + this.name;
+class Person {
+    Person(name) {
+        this.name = name;
+    }
+    shoutName() {
+        print "Hello I'm " + this.name + "!";
     }
 }
 
-var cake = new Cake();
-cake.name = "Cristian";
-cake.greet();
+var personInstance = new Person("Cristian");
+personInstance.shoutName();

@@ -183,15 +183,17 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     public Object visitClassExpr(Expr.Class expr) {
         LoxClass klass = (LoxClass) environment.get(expr.identifier);
         LoxInstance instance = new LoxInstance(klass);
-        Object constructor = instance.klass.findMethod(expr.identifier.lexeme);
-        if (constructor instanceof Func c) {
+        try {
+            Func constructor = (Func) instance.get(expr.identifier);
             List<Object> args = new ArrayList<>();
             expr.arguments.forEach(a -> args.add(a.accept(this)));
-            if (args.size() != c.arity()) {
-                throw new RuntimeError(expr.identifier, "Class constructor expected " + c.arity() + " arguments but got " +
+            if (args.size() != constructor.arity()) {
+                throw new RuntimeError(expr.identifier, "Class constructor expected " + constructor.arity() + " arguments but got " +
                         args.size() + " instead.");
             }
-            c.call(this, args);
+            constructor.call(this, args);
+
+        } catch (RuntimeError ignored) {
         }
         return instance;
     }
