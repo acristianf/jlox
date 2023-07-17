@@ -1,5 +1,6 @@
 # Lox Interpreter in Java
-This is a lox interpreter made in Java following the ["Crafting Interpreters"](https://craftinginterpreters.com) book.
+Language interpreter for a dynamic language written in Java, has variables, functions(first-class) and classes. <br/>
+Was written following the ["Crafting Interpreters"](https://craftinginterpreters.com) book to learn how languages work inside-out.
 
 ## How to run it?
 
